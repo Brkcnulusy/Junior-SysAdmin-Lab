@@ -1,0 +1,12 @@
+# Sistem Dosyaları
+.DS_Store
+Thumbs.db
+
+# Loglar ve Geçici Dosyalar
+*.log
+*.tmp
+
+# SSH ve Gizli Anahtarlar (Güvenlik için çok kritik!)
+*.pem
+*.key
+id_rsa
