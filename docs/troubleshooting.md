@@ -13,3 +13,10 @@ To fix this, I had to remove the old, outdated key from my local machine using t
 
 ```powershell
 ssh-keygen -R 192.168.65.128
+
+## Problem: SCP Connection Refused (2026-02-16)
+When trying to transfer files via SCP from Windows, the connection was refused.
+
+## Solution
+Since SSH was moved to port 2222, default SCP (port 22) failed. Fixed by using `-P 2222` flag:
+`scp -P 2222 local_file user@ip:/path/`
