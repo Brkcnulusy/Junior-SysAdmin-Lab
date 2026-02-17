@@ -58,20 +58,20 @@
     <div class="row-triplet">
         <div class="card">
             <h2>System Health</h2>
-            <div class="main-val" style="color:#10b981; font-size: 1.4em;">Active (3)<span id="uptime-val">1 hour, 5 minutes</span> <span class="status-pill" style="background:#064e3b; color:#4ade80;">ONLINE</span></div>
-            <div class="detail-row"><span>CPU Load:</span> <span id="cpu-val" style="color:var(--success)">%4.8</span></div>
+            <div class="main-val" style="color:#10b981; font-size: 1.4em;">Active (5)<span id="uptime-val">2 hours, 0 minutes</span> <span class="status-pill" style="background:#064e3b; color:#4ade80;">ONLINE</span></div>
+            <div class="detail-row"><span>CPU Load:</span> <span id="cpu-val" style="color:var(--success)">%100</span></div>
             <div class="detail-row"><span>Boot Time:</span> <span id="uptime-raw" style="color:var(--accent)">2026-02-17 16:34:40</span></div>
         </div>
         <div class="card">
             <h2>Storage Usage</h2>
-            <div class="main-val" style="color:#10b981; font-size: 1.4em;">Active (3)<span id="disk-pct">42%</span> <span class="status-pill" style="background:#064e3b; color:#4ade80;">HEALTHY</span></div>
+            <div class="main-val" style="color:#10b981; font-size: 1.4em;">Active (5)<span id="disk-pct">42%</span> <span class="status-pill" style="background:#064e3b; color:#4ade80;">HEALTHY</span></div>
             <div class="progress-container"><div id="disk-bar" class="progress-fill" style="width: 42%;"></div></div>
             <div class="detail-row"><span>Status:</span> <span style="color:var(--success)">ACTIVE</span></div>
             <div class="detail-row"><span>Storage:</span> <span id="disk-info">6 GB / 14 GB</span></div>
         </div>
         <div class="card">
             <h2>Memory Usage</h2>
-            <div class="main-val" style="color:#10b981; font-size: 1.4em;">Active (3)<span id="ram-pct">13%</span> <span class="status-pill" style="background:#4c1d95; color:#ddd6fe;">STABLE</span></div>
+            <div class="main-val" style="color:#10b981; font-size: 1.4em;">Active (5)<span id="ram-pct">13%</span> <span class="status-pill" style="background:#4c1d95; color:#ddd6fe;">STABLE</span></div>
             <div class="progress-container"><div id="ram-bar" class="progress-fill" style="background:#a855f7; width: 13%;"></div></div>
             <div class="detail-row"><span>RAM Info:</span> <span id="ram-info">0.5 GB / 3.7 GB</span></div>
         </div>
@@ -83,18 +83,19 @@
             <div class="detail-row"><span>SSH (2222):</span> <span id="stat-ssh" style="color:var(--success)">OPEN</span></div>
             <div class="detail-row"><span>Firewall:</span> <span id="stat-fw" style="color:var(--success)">ACTIVE</span></div>
             <div class="detail-row" style="margin-top:4px; border-top:1px solid #444; padding-top:6px;">
-                <span>Last Update:</span> <span id="last-apt-check" style="color:var(--accent)">17.02.2026 - 17:40</span>
+                <span>Last Update:</span> <span id="last-apt-check" style="color:var(--accent)">17.02.2026 - 18:35</span>
             </div>
             <div class="detail-row"><span>Pending:</span> <span id="pending-up" style="color:var(--warn)">3</span></div>
         </div>
         <div class="card">
             <h2>Backup Status</h2>
-            <div class="main-val" style="color:#10b981; font-size: 1.4em;">Active (3)<span class="status-pill" style="background:#334155; color:#94a3b8;">STANDBY</span></div>
-            <div class="detail-row"><span>Last Backup:</span> <span>backup_2026-02-17_17-06.tar.gz</span></div>
-            <div class="detail-row"><span>Archive Size:</span> <span>168K</span></div>
-            <div class="detail-row"><span>Format:</span> <span>Full / Gzip</span></div>
+    	    <div class="main-val" style="color:#64748b; font-size: 1.4em;" id="backup-label" style="color:#10b981; font-size: 1.4em;">Active (6)</div>
+            <div class="detail-row"><span>Last Success:</span> <span id="backup-time">2026-02-17 18:29</span></div>
+    	    <div class="detail-row"><span>File Name:</span> <span id="backup-file">backup_2026-02-17_18-29.tar.gz</span></div>
+    	    <div class="detail-row"><span>Archive Size:</span> <span id="backup-size">244K</span></div>
+    	    <div class="detail-row"><span>Format:</span> <span>Full / Gzip</span></div>
         </div>
-    </div>
+    	</div>
     <div class="row-single">
         <div class="card" style="height: auto; min-height: 190px;">
             <h2>HTML Source Monitor</h2>

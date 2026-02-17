@@ -36,15 +36,23 @@ UPTIME_SHORT=$(uptime -p | sed 's/up //')
 UPTIME_RAW=$(uptime -s)
 UPDATES=$(apt list --upgradable 2>/dev/null | grep -c upgradable)
 
-# --- YENİ: Yedekleme Metrikleri / Backup Metrics ---
-LAST_BACKUP=$(ls -t $BACKUP_DIR 2>/dev/null | head -n 1)
-if [ -z "$LAST_BACKUP" ]; then
-    LAST_BACKUP="No records found"
+# --- YENİ: Gelişmiş Yedekleme Metrikleri / Advanced Backup Metrics ---
+LAST_BACKUP_FILE=$(ls -t $BACKUP_DIR 2>/dev/null | head -n 1)
+
+if [ -z "$LAST_BACKUP_FILE" ]; then
+    BACKUP_DISPLAY_TIME="No records found"
+    LAST_B_NAME="-"
     BACKUP_SIZE="0.00 MB"
     BACKUP_LABEL="N/A"
     BACKUP_COLOR="#64748b" # Gri
 else
-    BACKUP_SIZE=$(du -h "$BACKUP_DIR/$LAST_BACKUP" | awk '{print $1}')
+    # Dosya isminden tarih ve saat ayıklama (Örn: backup_2026-02-17_18-19.tar.gz)
+    B_DATE=$(echo $LAST_BACKUP_FILE | cut -d'_' -f2)
+    B_HOUR=$(echo $LAST_BACKUP_FILE | cut -d'_' -f3 | cut -d'.' -f1 | tr '-' ':')
+    BACKUP_DISPLAY_TIME="$B_DATE $B_HOUR"
+    LAST_B_NAME=$LAST_BACKUP_FILE
+    
+    BACKUP_SIZE=$(du -h "$BACKUP_DIR/$LAST_BACKUP_FILE" | awk '{print $1}')
     TOTAL_BACKUPS=$(ls $BACKUP_DIR | wc -l)
     BACKUP_LABEL="Active ($TOTAL_BACKUPS)"
     BACKUP_COLOR="#10b981" # Yeşil (Success)
@@ -61,7 +69,7 @@ echo -e "${GREEN}>>> TAMAMLANDI / COMPLETED${NC}\n"
 echo -e "${BLUE}--- [4/5] DASHBOARD SYNC ---${NC}"
 echo -e "${YELLOW}TR: Metrikler HTML'e enjekte ediliyor...${NC}"
 
-# Mevcut Sed Komutları
+# Sistem Metrikleri Sed Komutları
 sed -i "s/id=\"uptime-raw\"[^>]*>[^<]*/id=\"uptime-raw\" style=\"color:var(--accent)\">$UPTIME_RAW/g" $WEB_FILE
 sed -i "s/id=\"uptime-val\"[^>]*>[^<]*/id=\"uptime-val\">$UPTIME_SHORT/g" $WEB_FILE
 sed -i "s/id=\"cpu-val\"[^>]*>[^<]*/id=\"cpu-val\" style=\"color:var(--success)\">%$CPU_LOAD/g" $WEB_FILE
@@ -78,13 +86,15 @@ sed -i "s/id=\"last-apt-check\"[^>]*>[^<]*/id=\"last-apt-check\" style=\"color:v
 sed -i "s/id=\"last-update\"[^>]*>[^<]*/id=\"last-update\">$TIME/g" $WEB_FILE
 sed -i "s/id=\"pending-up\"[^>]*>[^<]*/id=\"pending-up\" style=\"color:var(--warn)\">$UPDATES/g" $WEB_FILE
 
-# --- YENİ: Backup HTML Enjeksiyonu ---
-# Main Label (Active/NA)
-sed -i "s/class=\"main-val\"[^>]*>[^<]*/class=\"main-val\" style=\"color:$BACKUP_COLOR; font-size: 1.4em;\">$BACKUP_LABEL/g" $WEB_FILE
-# Last Backup Satırı
-sed -i "s/<span>Last Backup:<\/span> <span>[^<]*/<span>Last Backup:<\/span> <span>$LAST_BACKUP/g" $WEB_FILE
-# Archive Size Satırı
-sed -i "s/<span>Archive Size:<\/span> <span>[^<]*/<span>Archive Size:<\/span> <span>$BACKUP_SIZE/g" $WEB_FILE
+# --- GÜNCELLENEN: Backup HTML Enjeksiyonu ---
+# id="backup-label" -> Active (X) kısmı
+sed -i "s/id=\"backup-label\"[^>]*>[^<]*/id=\"backup-label\" style=\"color:$BACKUP_COLOR; font-size: 1.4em;\">$BACKUP_LABEL/g" $WEB_FILE
+# id="backup-time" -> Sadece Tarih ve Saat
+sed -i "s/id=\"backup-time\"[^>]*>[^<]*/id=\"backup-time\">$BACKUP_DISPLAY_TIME/g" $WEB_FILE
+# id="backup-file" -> Sadece Dosya Adı
+sed -i "s/id=\"backup-file\"[^>]*>[^<]*/id=\"backup-file\">$LAST_B_NAME/g" $WEB_FILE
+# id="backup-size" -> Dosya Boyutu
+sed -i "s/id=\"backup-size\"[^>]*>[^<]*/id=\"backup-size\">$BACKUP_SIZE/g" $WEB_FILE
 
 # Kaynak kod kutusunu güncelle
 perl -i -0777 -pe "s|<div class=\"code-window\" id=\"full-source\">.*?</div>|<div class=\"code-window\" id=\"full-source\"><pre><code>$HTML_CONTENT</code></pre></div>|s" $WEB_FILE
