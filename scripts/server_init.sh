@@ -7,6 +7,7 @@ YELLOW='\033[1;33m'
 NC='\033[0m' # No Color
 
 WEB_FILE="/home/burak/Junior-SysAdmin-Lab/index.html"
+BACKUP_DIR="/home/burak/backups/project_backups"
 
 # Zaman bilgisi / Time Info
 TIME=$(date "+%d.%m.%Y - %H:%M")
@@ -22,7 +23,6 @@ echo -e "${GREEN}>>> TAMAMLANDI / COMPLETED${NC}\n"
 echo -e "${BLUE}--- [2/5] DATA COLLECTION ---${NC}"
 echo -e "${YELLOW}TR: CPU, RAM ve Disk metrikleri sistemden toplanıyor...${NC}"
 echo -e "${YELLOW}EN: Collecting CPU, RAM, and Disk metrics from the system...${NC}"
-# Kararlı CPU LOAD çekme yöntemi
 CPU_LOAD=$(top -bn1 | grep "Cpu(s)" | awk '{print 100 - $8}' | cut -d',' -f1)
 DISK_TOTAL=$(df -BG / | grep / | awk '{print $2}' | sed 's/G//')
 DISK_USED=$(df -BG / | grep / | awk '{print $3}' | sed 's/G//')
@@ -35,20 +35,33 @@ RAM_USED_GB=$(echo "scale=1; $RAM_USED_MB/1024" | bc | awk '{printf "%.1f", $0}'
 UPTIME_SHORT=$(uptime -p | sed 's/up //')
 UPTIME_RAW=$(uptime -s)
 UPDATES=$(apt list --upgradable 2>/dev/null | grep -c upgradable)
+
+# --- YENİ: Yedekleme Metrikleri / Backup Metrics ---
+LAST_BACKUP=$(ls -t $BACKUP_DIR 2>/dev/null | head -n 1)
+if [ -z "$LAST_BACKUP" ]; then
+    LAST_BACKUP="No records found"
+    BACKUP_SIZE="0.00 MB"
+    BACKUP_LABEL="N/A"
+    BACKUP_COLOR="#64748b" # Gri
+else
+    BACKUP_SIZE=$(du -h "$BACKUP_DIR/$LAST_BACKUP" | awk '{print $1}')
+    TOTAL_BACKUPS=$(ls $BACKUP_DIR | wc -l)
+    BACKUP_LABEL="Active ($TOTAL_BACKUPS)"
+    BACKUP_COLOR="#10b981" # Yeşil (Success)
+fi
+
 echo -e "${GREEN}>>> TAMAMLANDI / COMPLETED${NC}\n"
 
 echo -e "${BLUE}--- [3/5] SERVICE AUDIT ---${NC}"
-echo -e "${YELLOW}TR: Kritik servislerin (Nginx, SSH, UFW) durumları kontrol ediliyor...${NC}"
-echo -e "${YELLOW}EN: Checking status of critical services (Nginx, SSH, UFW)...${NC}"
 NGINX=$(systemctl is-active nginx | tr '[:lower:]' '[:upper:]')
 SSH=$(ss -tulpn | grep -q ":2222" && echo "OPEN" || echo "CLOSED")
 UFW=$(sudo ufw status | grep -q "active" && echo "ACTIVE" || echo "INACTIVE")
 echo -e "${GREEN}>>> TAMAMLANDI / COMPLETED${NC}\n"
 
 echo -e "${BLUE}--- [4/5] DASHBOARD SYNC ---${NC}"
-echo -e "${YELLOW}TR: Toplanan metrikler HTML şablonuna enjekte ediliyor...${NC}"
-echo -e "${YELLOW}EN: Injecting collected metrics into the HTML template...${NC}"
-# Veri Enjeksiyonu / Data Injection
+echo -e "${YELLOW}TR: Metrikler HTML'e enjekte ediliyor...${NC}"
+
+# Mevcut Sed Komutları
 sed -i "s/id=\"uptime-raw\"[^>]*>[^<]*/id=\"uptime-raw\" style=\"color:var(--accent)\">$UPTIME_RAW/g" $WEB_FILE
 sed -i "s/id=\"uptime-val\"[^>]*>[^<]*/id=\"uptime-val\">$UPTIME_SHORT/g" $WEB_FILE
 sed -i "s/id=\"cpu-val\"[^>]*>[^<]*/id=\"cpu-val\" style=\"color:var(--success)\">%$CPU_LOAD/g" $WEB_FILE
@@ -65,11 +78,18 @@ sed -i "s/id=\"last-apt-check\"[^>]*>[^<]*/id=\"last-apt-check\" style=\"color:v
 sed -i "s/id=\"last-update\"[^>]*>[^<]*/id=\"last-update\">$TIME/g" $WEB_FILE
 sed -i "s/id=\"pending-up\"[^>]*>[^<]*/id=\"pending-up\" style=\"color:var(--warn)\">$UPDATES/g" $WEB_FILE
 
-# Kaynak kod kutusunu güncelle / Update source monitor
-perl -i -0777 -pe "s|<div class=\"code-window\" id=\"full-source\">.*?</div>|<div class=\"code-window\" id=\"full-source\">$HTML_CONTENT</div>|s" $WEB_FILE
+# --- YENİ: Backup HTML Enjeksiyonu ---
+# Main Label (Active/NA)
+sed -i "s/class=\"main-val\"[^>]*>[^<]*/class=\"main-val\" style=\"color:$BACKUP_COLOR; font-size: 1.4em;\">$BACKUP_LABEL/g" $WEB_FILE
+# Last Backup Satırı
+sed -i "s/<span>Last Backup:<\/span> <span>[^<]*/<span>Last Backup:<\/span> <span>$LAST_BACKUP/g" $WEB_FILE
+# Archive Size Satırı
+sed -i "s/<span>Archive Size:<\/span> <span>[^<]*/<span>Archive Size:<\/span> <span>$BACKUP_SIZE/g" $WEB_FILE
+
+# Kaynak kod kutusunu güncelle
+perl -i -0777 -pe "s|<div class=\"code-window\" id=\"full-source\">.*?</div>|<div class=\"code-window\" id=\"full-source\"><pre><code>$HTML_CONTENT</code></pre></div>|s" $WEB_FILE
 
 echo -e "${GREEN}>>> DASHBOARD GÜNCELLENDİ / DASHBOARD UPDATED${NC}\n"
 
 echo -e "${BLUE}--- [5/5] FINISHED ---${NC}"
 echo -e "${GREEN}TR: Tüm işlemler başarıyla tamamlandı.${NC}"
-echo -e "${GREEN}EN: All operations completed successfully.${NC}"

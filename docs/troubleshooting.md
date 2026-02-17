@@ -20,3 +20,9 @@ When trying to transfer files via SCP from Windows, the connection was refused.
 ## Solution
 Since SSH was moved to port 2222, default SCP (port 22) failed. Fixed by using `-P 2222` flag:
 `scp -P 2222 local_file user@ip:/path/`
+
+## Problem: Cronjob not updating UFW/Apt status (2026-02-17)
+The dashboard metrics for UFW and updates were empty when running via user crontab.
+
+## Solution
+These commands require `sudo` privileges. Moved the dashboard sync task to the **root crontab** using `sudo crontab -e` to allow the script to execute privileged commands without a password prompt.
